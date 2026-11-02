@@ -21,10 +21,8 @@ namespace aim::q1 {
 long long ratio(long long hp, long long max_hp) { 
     if(max_hp <= 0) return -1;
     if(hp <= 0) return 0;
-    if(max_hp > 0){
-        if(hp >= max_hp) return 100;
-        else return int(hp*100/max_hp);
-    }
+    if(hp >= max_hp) return 100;
+    return hp * 100 / max_hp;   
 }
 
 std::string report(int id, long long hp, long long max_hp, int battery) { 
@@ -45,7 +43,7 @@ std::string report(int id, long long hp, long long max_hp, int battery) {
     else {
         STATU = "WARNING";
     }
-    if(max_hp < 0) {
+    if(max_hp <= 0) {
         HP = "INVALID";
     }
     else {

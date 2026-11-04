@@ -24,6 +24,12 @@
 #define main local_main_q8
 #include "../src/main/A1_q8.cpp"
 #undef main
+#define main local_main_b1
+#include "../src/main/A1_b1.cpp"
+#undef main
+#define main local_main_b2
+#include "../src/main/A1_b2.cpp"
+#undef main
 
 #undef CHECK
 #define CHECK(...) do { if (!(__VA_ARGS__)) { \
@@ -209,6 +215,65 @@ int main() {
         {
             aim::q8::Summary s = aim::q8::summarize({{1, 5}});
             CHECK(s.total_hp == 5);   // 与上一批独立
+        }
+
+        // ---- B1 有符号十进制解析 ----
+        {
+            int x = 9;
+            CHECK(parse_i32("2147483647", x) && x == 2147483647);
+            CHECK(parse_i32("-2147483648", x) && x == -2147483648);
+            CHECK(!parse_i32("2147483648", x) && x == -2147483648);   // 越界保留旧值
+            CHECK(!parse_i32("-2147483649", x) && x == -2147483648);
+            CHECK(parse_i32("-0000", x) && x == 0);
+            CHECK(parse_i32("+0", x) && x == 0);
+            CHECK(parse_i32("00042", x) && x == 42);
+            CHECK(!parse_i32("", x) && x == 42);
+            CHECK(!parse_i32("+", x) && x == 42);
+            CHECK(!parse_i32("-", x) && x == 42);
+            CHECK(!parse_i32(" 1", x) && x == 42);
+            CHECK(!parse_i32("1 ", x) && x == 42);
+            CHECK(!parse_i32("1.0", x) && x == 42);
+            CHECK(!parse_i32("++1", x) && x == 42);
+            CHECK(!parse_i32("-+1", x) && x == 42);
+            CHECK(!parse_i32("12x", x) && x == 42);
+            CHECK(!parse_i32("0x10", x) && x == 42);
+            CHECK(!parse_i32("123456789012345678901234567890", x) && x == 42);  // 长串提前拒绝
+            std::string long_digits(1000, '9');
+            CHECK(!parse_i32(long_digits, x) && x == 42);             // 1000 位
+            CHECK(!parse_i32("-" + long_digits, x) && x == 42);
+        }
+
+        // ---- B2 原地稳定压缩 ----
+        {
+            int a[] = {3, 1, 3, 2, 3};
+            CHECK(compact(a, 5, 2, 3) == 4 && a[0] == 3 && a[1] == 3 && a[2] == 2 && a[3] == 3);
+        }
+        {
+            int a[] = {1, 2};
+            CHECK(compact(a, 2, 5, 3) == 0 && a[0] == 1 && a[1] == 2);   // 反向区间不修改
+        }
+        {
+            int a[] = {1, 1, 1};
+            CHECK(compact(a, 3, 1, 1) == 3);
+        }
+        {
+            CHECK(compact(nullptr, 0, 0, 1) == 0);
+        }
+        {
+            int a[] = {-1, 2, 0, 9};
+            CHECK(compact(a, 4, 0, 2) == 2 && a[0] == 2 && a[1] == 0);
+        }
+        {
+            int a[] = {1, 2, 3};
+            CHECK(compact(a, 3, 5, 6) == 0);   // 全不命中
+        }
+        {
+            int a[] = {1, 2};
+            CHECK(compact(a, 2, 0, 5) == 2 && a[0] == 1 && a[1] == 2);   // 全保留稳定
+        }
+        {
+            int a[] = {7};
+            CHECK(compact(a, 1, 7, 7) == 1);
         }
 
         std::cout << "LOCAL BOUNDARY ALL PASS\n";

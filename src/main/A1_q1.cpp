@@ -25,31 +25,21 @@ long long ratio(long long hp, long long max_hp) {
     return hp * 100 / max_hp;   
 }
 
-std::string report(int id, long long hp, long long max_hp, int battery) { 
-    std::string STATU;
-    std::string HP;
-    if(battery < 0) {
-        battery = 0;
-    }
-    else if(battery > 100) {
-        battery = 100;
-    }
-    if(battery >= 60) {
-        STATU = "OK";
-    }
-    else if(battery < 20) {
-        STATU = "LOW";
-    }
-    else {
-        STATU = "WARNING";
-    }
-    if(max_hp <= 0) {
-        HP = "INVALID";
-    }
-    else {
-        HP = std::to_string(ratio(hp, max_hp));
-    }
-    return "ID=" + std::to_string(id) + ";HP=" + HP + ";BAT=" + std::to_string(battery) + ";STATE=" + STATU;
+std::string report(int id, long long hp, long long max_hp, int battery) {
+    if (battery < 0) battery = 0;
+    else if (battery > 100) battery = 100;
+
+    std::string state;
+    if (battery >= 60) state = "OK";
+    else if (battery < 20) state = "LOW";
+    else state = "WARNING";
+
+    std::string hp_field;
+    if (max_hp <= 0) hp_field = "INVALID";
+    else hp_field = std::to_string(ratio(hp, max_hp));
+
+    return "ID=" + std::to_string(id) + ";HP=" + hp_field
+         + ";BAT=" + std::to_string(battery) + ";STATE=" + state;
 }
 // END IMPLEMENTATION
 }
